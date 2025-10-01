@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hero {
+  id      Int @id
+  name    String
+
+  matches MatchHero[]
+}
+
+model Faction {
+  id      Int @id
+  name    String
+
+  wins    Match[]
+  players MatchHero[]
+}
+
+model Match {
+  id       Int @id
+  type     Int
+  duration Int
+  date     DateTime
+  winnerId Int
+  winner   Faction @relation(fields: [winnerId], references: [id])
+  
+  heroes   MatchHero[]
+}
+
+model Position {
+  position Int @id
+  name     String
+
+  heroes   MatchHero[]
+}
+
+model MatchHero {
+  @@id([matchId, heroId])
+  matchId    Int 
+  heroId     Int 
+  factionId  Int
+  position   Int
+  
+  kills      Int
+  assists    Int
+  deaths     Int
+  gold       Int
+  creepScore Int
+  denyScore  Int
+
+  match      Match @relation(fields: [matchId], references: [id])
+  faction    Faction @relation(fields: [factionId], references: [id])
+  hero       Hero @relation(fields: [heroId], references: [id])
+  positionfk Position @relation(fields: [position], references: [position])
+}
