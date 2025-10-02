@@ -93,15 +93,14 @@ export class Database {
     // --- Duration (Total duration)
     // --- Duration (Average duration)
     // --- Types    (Amout of each type)
-    public static async getMatchesStats() {
+    public static async getAllMatchesStats() {
         const count = await prisma.match.count();
-        const matches = await prisma.match.aggregate({_sum: { duration: true }});
-        const types = await prisma.match.groupBy({by: ["type"], _count: { type: true }})
+        const matches = await prisma.match.aggregate({_sum: {duration: true}});
+        const types = await prisma.match.groupBy({by: ["type"], _count: {type: true}})
         const avgDuration = matches._sum?.duration ? matches._sum.duration / count : 0;
         const stats = await prisma.matchHero.aggregate({
             _sum: { kills: true, gold: true, creepScore: true, denyScore: true }
         });
-
         
         return {
             count: count ?? 0,
@@ -116,6 +115,28 @@ export class Database {
                 allPick: types.find(m => m.type === 2)?._count.type ?? 0,
                 competitive: types.find(m => m.type === 3)?._count.type ?? 0,
             }
+        }
+    }
+
+    public static async getMatchStatsByType(matchType: number) {
+        const matches = await prisma.match.aggregate({
+            where: {type: matchType},
+            _sum: {duration: true},
+            _count: {_all: true}
+        });
+
+        const stats = await prisma.matchHero.aggregate({
+            where: {match: {type: matchType}},
+            _sum: {kills: true, gold: true, creepScore: true, denyScore: true}
+        });
+        
+        return {
+            count: matches._count._all ?? 0,
+            kills: stats._sum?.kills ?? 0,
+            gold: stats._sum?.gold ?? 0,
+            creepScore: stats._sum?.creepScore ?? 0,
+            denyScore: stats._sum?.denyScore ?? 0,
+            duration: matches._sum?.duration ?? 0,
         }
     }
 

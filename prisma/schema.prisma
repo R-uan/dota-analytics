@@ -28,8 +28,15 @@ model Faction {
   players MatchHero[]
 }
 
+model Position {
+  position Int @id
+  name     String
+
+  heroes   MatchHero[]
+}
+
 model Match {
-  id       Int @id
+  id       Int @id @default(autoincrement())
   type     Int
   duration Int
   date     DateTime
@@ -39,19 +46,13 @@ model Match {
   heroes   MatchHero[]
 }
 
-model Position {
-  position Int @id
-  name     String
-
-  heroes   MatchHero[]
-}
 
 model MatchHero {
   @@id([matchId, heroId])
   matchId    Int 
   heroId     Int 
   factionId  Int
-  position   Int
+  positionFk Int
   
   kills      Int
   assists    Int
@@ -63,5 +64,5 @@ model MatchHero {
   match      Match @relation(fields: [matchId], references: [id])
   faction    Faction @relation(fields: [factionId], references: [id])
   hero       Hero @relation(fields: [heroId], references: [id])
-  positionfk Position @relation(fields: [position], references: [position])
+  position   Position @relation(fields: [positionFk], references: [position])
 }

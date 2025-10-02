@@ -5,7 +5,7 @@ Pipeline to analyse dota 2 matches and process match, heroes, factions and posit
 ###### Analytic's targets
 The stats should be separated by: type (turbo, all picks, ranked), individually (single match)
 - Heroes stats: K/D/A, gold, creep score, deny score, level, position, pick rate, win rate.
-- Match stats: duration, type.
+- Match stats: total, duration, type.
 - Faction stats: kills, gold, creep score, deny score.
 - Position stats: most picked heroes, 
 
