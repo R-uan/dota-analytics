@@ -3,53 +3,101 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export class Database {
-    //
-    // - Aggregates overall status from all heroes.
-    // --- K/D/A     (Amount for each)
-    // --- K/D/A     (Average)
-    // --- Gold
-    // --- Pick      (Matches Amount)
-    // --- Pick Rate (Percentage)
-    // --- Creep Score
-    // --- Deny Score
+    // -- /heroes
     public static async getHeroesStats() {
         const matchAmount = await prisma.match.count();
         const heroes = await prisma.hero.findMany({ include: { matches: true }});
+
+        const heroesWins: Record<number, number> = {}; 
+        const matches = await prisma.match.findMany({
+            include: { heroes: true, },
+        });
+
+        matches.forEach(match => {
+            match.heroes.forEach(hero => {
+                if (hero.factionId === match.winnerId) {
+                    heroesWins[hero.heroId] = (heroesWins[hero.heroId] || 0) +1 
+                }
+            })
+        });
+
         return heroes.map(hero => {
-            const kills = hero.matches.reduce((sum, m) => sum + m.kills, 0);
-            const deaths = hero.matches.reduce((sum, m) => sum + m.deaths, 0);
-            const assists = hero.matches.reduce((sum, m) => sum + m.assists, 0);
-            const gold = hero.matches.reduce((sum, m) => sum + m.gold, 0);
-            const creepScore = hero.matches.reduce((sum, m) => sum + m.creepScore, 0);
-            const denyScore = hero.matches.reduce((sum, m) => sum + m.denyScore, 0);
+            const totalKills = hero.matches.reduce((sum, m) => sum + m.kills, 0);
+            const totalDeaths = hero.matches.reduce((sum, m) => sum + m.deaths, 0);
+            const totalAssists = hero.matches.reduce((sum, m) => sum + m.assists, 0);
             
+            const win = heroesWins[hero.id] ?? 0;
             const matchesPresent = hero.matches.length;
-            const pickRate = (matchesPresent * 100) / matchAmount;
-            
+
             return {
                 heroId: hero.id,
                 heroName: hero.name,
-                kills,
-                deaths, 
-                assists,
-                gold,
-                picks: matchesPresent,
-                pickRate,
-                creepScore,
-                denyScore,
-                avgKda: deaths ? (kills + assists) / deaths : kills + assists
+
+                totalWins: win,
+                winRate: (win * 100) / matchesPresent,
+
+                totalPicks: matchesPresent,
+                pickRate: (matchesPresent * 100) / matchAmount,
+                
+                totalKda: {
+                    totalAvg: (totalDeaths ? (totalKills + totalAssists) / totalDeaths : totalKills + totalAssists).toPrecision(2),
+                    totalKills,
+                    totalDeaths, 
+                    totalAssists,
+                },
+
+                totalGold: hero.matches.reduce((sum, m) => sum + m.gold, 0),
+                totalCreepScore: hero.matches.reduce((sum, m) => sum + m.creepScore, 0),
+                totalDenyScore: hero.matches.reduce((sum, m) => sum + m.denyScore, 0),
             }
         });
     }
+
+    public static async getHeroStats(id: number) {
+        const hero = await prisma.hero.findUnique({where: { id: id }, include: { matches: true }});
+        if (hero === null) return null;
+        
+        const totalMatchesAmount = await prisma.match.count();
+        const totalMatchesPresent = await prisma.match.findMany({
+            include: { heroes: true },
+            where: { heroes: {some: { heroId: id }}}
+        });
+        
+        let wins = 0;
+        totalMatchesPresent.forEach(match => {
+            if (match.heroes.some(h => h.heroId === id && h.factionId === match.winnerId)) {
+                wins++;
+            }
+        });
+
+        const totalKills = hero.matches.reduce((sum, m) => sum + m.kills, 0);
+        const totalDeaths = hero.matches.reduce((sum, m) => sum + m.deaths, 0);
+        const totalAssists = hero.matches.reduce((sum, m) => sum + m.assists, 0);
+
+        return {
+                heroId: hero.id,
+                heroName: hero.name,
+
+                totalWins: wins,
+                winRate: (wins * 100) / totalMatchesPresent.length,
+
+                totalPicks: totalMatchesPresent.length,
+                pickRate: (totalMatchesPresent.length * 100) / totalMatchesAmount,
+                
+                totalKda: {
+                    totalAvg: (totalDeaths ? (totalKills + totalAssists) / totalDeaths : totalKills + totalAssists).toPrecision(2),
+                    totalKills,
+                    totalDeaths, 
+                    totalAssists,
+                },
+
+                totalGold: hero.matches.reduce((sum, m) => sum + m.gold, 0),
+                totalCreepScore: hero.matches.reduce((sum, m) => sum + m.creepScore, 0),
+                totalDenyScore: hero.matches.reduce((sum, m) => sum + m.denyScore, 0),
+        }
+    }
     
-    //
-    // - Agregates overall stats from both factions from all matches
-    // --- Wins        (Amount)
-    // --- Win Rate    (Percentage)
-    // --- Total Kills 
-    // --- Total Gold 
-    // --- Total Creep 
-    // --- Total Deny 
+    // -- /factions
     public static async getFactionStats() {
         const matchAmount = await prisma.match.count();
         const factionStats = await prisma.matchHero.groupBy({
@@ -84,81 +132,96 @@ export class Database {
             }
         }
     }
-    //
-    // - Overall match stats
-    // --- Kills
-    // --- Gold
-    // --- Creep Score
-    // --- Deny Score
-    // --- Duration (Total duration)
-    // --- Duration (Average duration)
-    // --- Types    (Amout of each type)
+    
+    // -- /matches
     public static async getAllMatchesStats() {
-        const count = await prisma.match.count();
+        const totalMatches = await prisma.match.count();
         const matches = await prisma.match.aggregate({_sum: {duration: true}});
         const types = await prisma.match.groupBy({by: ["type"], _count: {type: true}})
-        const avgDuration = matches._sum?.duration ? matches._sum.duration / count : 0;
+
         const stats = await prisma.matchHero.aggregate({
-            _sum: { kills: true, gold: true, creepScore: true, denyScore: true }
+            _sum: { 
+                kills: true, 
+                deaths: true,
+                assists: true, 
+                gold: true, 
+                creepScore: true, 
+                denyScore: true, 
+            }
         });
         
+        const turboCount = types.find(m => m.type === 1)?._count.type ?? 0;
+        const rankedCount = types.find(m => m.type === 2)?._count.type ?? 0;
+        const allPickCount = types.find(m => m.type === 1)?._count.type ?? 0;
+        
         return {
-            count: count ?? 0,
-            kills: stats._sum?.kills ?? 0,
-            gold: stats._sum?.gold ?? 0,
-            creepScore: stats._sum?.creepScore ?? 0,
-            denyScore: stats._sum?.denyScore ?? 0,
-            duration: matches._sum?.duration ?? 0,
-            avgDuration,
+            matchCount: totalMatches ?? 0,
+            
+            totalDuration: matches._sum?.duration ?? 0,
+            totalKills: stats._sum?.kills ?? 0,
+            totalAssists: stats._sum?.assists ?? 0,
+            totalGold: stats._sum?.gold ?? 0,
+            totalCreepScore: stats._sum?.creepScore ?? 0,
+            totalDenyScore: stats._sum?.denyScore ?? 0,
+
+            avgKills: Math.round((stats._sum?.kills ?? 0) / totalMatches),
+            avgDeaths: Math.round((stats._sum?.deaths ?? 0) / totalMatches),
+            avgAssists: Math.round((stats._sum?.assists ?? 0) / totalMatches),
+            avgDuration: Math.round((matches._sum?.duration ?? 0) / totalMatches),
+
             types: {
-                turbo: types.find(m => m.type === 1)?._count.type ?? 0,
-                allPick: types.find(m => m.type === 2)?._count.type ?? 0,
-                competitive: types.find(m => m.type === 3)?._count.type ?? 0,
-            }
+                allPick: {
+                    matchCount: allPickCount,
+                    distribution: Math.round(((allPickCount * 100) / totalMatches))
+                },
+                ranked: {
+                    matchCount: rankedCount,
+                    distribution: Math.round((rankedCount * 100) / totalMatches)
+                },
+                turbo: {
+                    matchCount: turboCount,
+                    distribution: Math.round((turboCount * 100) / totalMatches)
+                }
+            },
         }
     }
 
+    // -- /matches?type=:matchType
     public static async getMatchStatsByType(matchType: number) {
         const matches = await prisma.match.aggregate({
-            where: {type: matchType},
-            _sum: {duration: true},
-            _count: {_all: true}
+            where: { type: matchType },
+            _sum: { duration: true },
+            _count: { _all: true }
         });
 
+        const totalMatches = matches._count?._all ?? 0;
+
         const stats = await prisma.matchHero.aggregate({
-            where: {match: {type: matchType}},
-            _sum: {kills: true, gold: true, creepScore: true, denyScore: true}
+            where: { match: { type: matchType } },
+            _sum: { 
+                kills: true, 
+                deaths: true,
+                assists: true, 
+                gold: true, 
+                creepScore: true, 
+                denyScore: true, 
+            }
         });
         
         return {
-            count: matches._count._all ?? 0,
+            type: matchType === 1 ? "All Picks" : matchType === 2 ? "Ranked" : "Turbo",
             kills: stats._sum?.kills ?? 0,
+            matchCount: matches._count._all ?? 0,
             gold: stats._sum?.gold ?? 0,
+
             creepScore: stats._sum?.creepScore ?? 0,
             denyScore: stats._sum?.denyScore ?? 0,
             duration: matches._sum?.duration ?? 0,
+
+            avgKills: Math.round((stats._sum?.kills ?? 0) / totalMatches),
+            avgDeaths: Math.round((stats._sum?.deaths ?? 0) / totalMatches),
+            avgAssists: Math.round((stats._sum?.assists ?? 0) / totalMatches),
+            avgDuration: Math.round((matches._sum?.duration ?? 0) / totalMatches),
         }
-    }
-
-    public static async getHeroesPickRate() {
-        const matchAmount = await prisma.match.count();
-
-        const heroPicks = await prisma.matchHero.groupBy({
-            by: ["heroId"],
-            _count: { heroId: true }
-        });
-        
-        const heroes = await prisma.hero.findMany({select: { id: true, name: true }});
-
-        return heroes.map(hero => {
-            const count = heroPicks.find(h => h.heroId === hero.id)?._count.heroId ?? 0;
-            const pickRate = matchAmount > 0 ? (count * 100) / matchAmount : 0;
-            
-            return {
-                heroId: hero.id,
-                heroName: hero.name,
-                pickRate
-            }
-        })
     }
 }
