@@ -2,13 +2,29 @@
 
 Pipeline to analyse dota 2 matches and process match, heroes, factions and position stats.
 
-###### Analytic's targets
-The stats should be separated by: type (turbo, all picks, ranked), individually (single match)
-- Heroes stats: K/D/A, gold, creep score, deny score, level, position, pick rate, win rate.
-- Match stats: total, duration, type.
-- Faction stats: kills, gold, creep score, deny score.
-- Position stats: most picked heroes, 
+#### Analytic's targets
 
+##### Match-Level Stats
+- [x] Total matches played
+- [x] Average match duration
+- [x] Average kills/assists/deaths per match
+- [x] Average match duration **per type** (Turbo, All Pick, Competitive)
+- [x] Distribution of match types (percentages, not just counts)
+##### Hero-Level Stats
+- [x] Pick rate per hero
+- [x] Win rate per hero (wins when picked vs losses when picked)
+- [x] Average KDA (kills, deaths, assists) per hero
+- [x] Average gold, XP, and creep score per hero
+- [ ] Most popular position(s) a hero is played in
+##### Faction-Level Stats
+- [ ] Win rate split by game type (Turbo/All Pick/Competitive)
+- [x] Average kills/gold/CS per faction
+- [x] Win rate per faction (Radiant vs Dire)
+##### Player/Role-Level Stats (if you model positions)
+- [ ] Pick frequency per position (pos1–pos5)
+- [ ] Win rate per position
+- [ ] Average gold/CS per position
+- [ ] Position-specific hero preference (which heroes dominate which positions based on wins and KDA)
 #### Database Schema
 ```SQL
 -- Hero Table
@@ -16,12 +32,12 @@ ID   INTEGER NOT NULL (PK)
 NAME TEXT    NOT NULL -- Hero's name
 
 -- Faction Table
-ID   INTEGER NOT NULL (PK)
-NAME TEXT    NOT NULL -- Faction Name (Radiant, Dire)
+ID   INTEGER NOT NULL (PK) -- 0 = Radiant; 1 = Dire
+NAME TEXT    NOT NULL      -- Faction Name (Radiant, Dire)
 
 -- Match
 ID       INTEGER      NOT NULL (PK)
-TYPE     INTEGER      NOT NULL      -- 1: Turbo; 2: All Picks; 3 Ranked.
+TYPE     INTEGER      NOT NULL      -- 0 = All Picks; 2 = Ranked; 3 = Turbo
 DURATION INTEGER      NOT NULL      -- Match duration in seconds.
 WINNERID INTEGER      NOT NULL (FK) -- Foreign key of the winner side.
 DATE     TIMESTAMP(3) NOT NULL      -- When the match took place.

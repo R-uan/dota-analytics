@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { calculateHeroStats, calculatePositionFrequency } from "./helpers";
 
 const prisma = new PrismaClient();
 
 export class Database {
     // -- /heroes
+    // --- Get all heroes stats
     public static async getHeroesStats() {
         const matchAmount = await prisma.match.count();
         const heroes = await prisma.hero.findMany({ include: { matches: true }});
@@ -12,7 +14,7 @@ export class Database {
         const matches = await prisma.match.findMany({
             include: { heroes: true, },
         });
-
+                
         matches.forEach(match => {
             match.heroes.forEach(hero => {
                 if (hero.factionId === match.winnerId) {
@@ -20,81 +22,58 @@ export class Database {
                 }
             })
         });
-
+        
         return heroes.map(hero => {
-            const totalKills = hero.matches.reduce((sum, m) => sum + m.kills, 0);
-            const totalDeaths = hero.matches.reduce((sum, m) => sum + m.deaths, 0);
-            const totalAssists = hero.matches.reduce((sum, m) => sum + m.assists, 0);
-            
             const win = heroesWins[hero.id] ?? 0;
-            const matchesPresent = hero.matches.length;
+            const draftedAmount = hero.matches.length;
 
             return {
                 heroId: hero.id,
                 heroName: hero.name,
 
                 totalWins: win,
-                winRate: (win * 100) / matchesPresent,
+                winRate: (win * 100) / draftedAmount,
 
-                totalPicks: matchesPresent,
-                pickRate: (matchesPresent * 100) / matchAmount,
-                
-                totalKda: {
-                    totalAvg: (totalDeaths ? (totalKills + totalAssists) / totalDeaths : totalKills + totalAssists).toPrecision(2),
-                    totalKills,
-                    totalDeaths, 
-                    totalAssists,
-                },
+                ...calculateHeroStats(hero.matches),
 
-                totalGold: hero.matches.reduce((sum, m) => sum + m.gold, 0),
-                totalCreepScore: hero.matches.reduce((sum, m) => sum + m.creepScore, 0),
-                totalDenyScore: hero.matches.reduce((sum, m) => sum + m.denyScore, 0),
+                pickRate: (draftedAmount * 100) / matchAmount,
+                positions: calculatePositionFrequency(hero.matches, draftedAmount)
             }
         });
     }
 
+    // -- /heroes?id=number
+    // --- Get the stats of a single hero.
     public static async getHeroStats(id: number) {
+        const matchesAmount = await prisma.match.count();
         const hero = await prisma.hero.findUnique({where: { id: id }, include: { matches: true }});
         if (hero === null) return null;
         
-        const totalMatchesAmount = await prisma.match.count();
-        const totalMatchesPresent = await prisma.match.findMany({
+        const matchesDrafted = await prisma.match.findMany({
             include: { heroes: true },
             where: { heroes: {some: { heroId: id }}}
         });
+        const draftedAmount = matchesDrafted.length;
         
         let wins = 0;
-        totalMatchesPresent.forEach(match => {
+        matchesDrafted.forEach(match => {
             if (match.heroes.some(h => h.heroId === id && h.factionId === match.winnerId)) {
                 wins++;
             }
         });
-
-        const totalKills = hero.matches.reduce((sum, m) => sum + m.kills, 0);
-        const totalDeaths = hero.matches.reduce((sum, m) => sum + m.deaths, 0);
-        const totalAssists = hero.matches.reduce((sum, m) => sum + m.assists, 0);
 
         return {
                 heroId: hero.id,
                 heroName: hero.name,
 
                 totalWins: wins,
-                winRate: (wins * 100) / totalMatchesPresent.length,
+                winRate: (wins * 100) / draftedAmount,
 
-                totalPicks: totalMatchesPresent.length,
-                pickRate: (totalMatchesPresent.length * 100) / totalMatchesAmount,
-                
-                totalKda: {
-                    totalAvg: (totalDeaths ? (totalKills + totalAssists) / totalDeaths : totalKills + totalAssists).toPrecision(2),
-                    totalKills,
-                    totalDeaths, 
-                    totalAssists,
-                },
+                ...calculateHeroStats(hero.matches),
 
-                totalGold: hero.matches.reduce((sum, m) => sum + m.gold, 0),
-                totalCreepScore: hero.matches.reduce((sum, m) => sum + m.creepScore, 0),
-                totalDenyScore: hero.matches.reduce((sum, m) => sum + m.denyScore, 0),
-        }
+                pickRate: (draftedAmount * 100) / matchesAmount,
+                positions: calculatePositionFrequency(hero.matches, draftedAmount)
+            }
     }
     
     // -- /factions
