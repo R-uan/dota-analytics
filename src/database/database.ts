@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import {Calculations} from "./helpers";
+import { Calculations } from "./helpers";
 
 const prisma = new PrismaClient();
 
@@ -86,7 +86,7 @@ export class Database {
 
     const totalMatches = await prisma.match.count();
     const totalMatchesFound = await prisma.match.count({
-        where: matchWhere
+      where: matchWhere,
     });
     const duration = (
       await prisma.match.aggregate({ _sum: { duration: true } })
@@ -107,15 +107,15 @@ export class Database {
     return {
       ...(gamemode != null && {
         gamemode:
-          gamemode === 1
-            ? "All Picks"
-            : gamemode === 2
-            ? "Ranked"
-            : "Turbo",
+          gamemode === 1 ? "All Picks" : gamemode === 2 ? "Ranked" : "Turbo",
       }),
       matchCount: totalMatchesFound ?? 0,
       distribution: Math.round((totalMatchesFound * 100) / totalMatches),
-      ...Calculations.calculateMatchStats(stats._sum, totalMatchesFound, duration ?? 0),
+      ...Calculations.calculateMatchStats(
+        stats._sum,
+        totalMatchesFound,
+        duration ?? 0,
+      ),
     };
   }
 
@@ -125,7 +125,7 @@ export class Database {
     const matchWhere = gamemode !== null ? { type: gamemode } : {};
     const matchAmount = await prisma.match.count({ where: matchWhere });
     const factionStats = await prisma.matchHero.groupBy({
-      by: ["factionId"],
+      by: "factionId",
       _count: { matchId: true },
       _sum: { kills: true, gold: true, creepScore: true, denyScore: true },
       where: { match: matchWhere },
@@ -150,11 +150,45 @@ export class Database {
         winRate: (radiantWins * 100) / matchAmount,
         ...Calculations.calculateFactionStats(radiantData, matchAmount),
       },
+
       dire: {
         wins: wins.find((w) => w.winnerId === 1)?._count.winnerId ?? 0,
         winRate: Math.round((direWins * 100) / matchAmount),
         ...Calculations.calculateFactionStats(direData, matchAmount),
       },
+    };
+  }
+
+  public static async getPositionStats(gamemode: number | null = null) {
+    const matchWhere = gamemode !== null ? { type: gamemode } : {};
+
+    const posStats = await prisma.matchHero.groupBy({
+      by: "positionFk",
+      where: { match: matchWhere },
+      _sum: {
+        kills: true,
+        deaths: true,
+        assists: true,
+        gold: true,
+        creepScore: true,
+        denyScore: true,
+      },
+    });
+
+    const totalMatches = await prisma.match.count();
+
+    const pos1 = posStats.find((x) => x.positionFk === 1)?._sum;
+    const pos2 = posStats.find((x) => x.positionFk === 2)?._sum;
+    const pos3 = posStats.find((x) => x.positionFk === 3)?._sum;
+    const pos4 = posStats.find((x) => x.positionFk === 4)?._sum;
+    const pos5 = posStats.find((x) => x.positionFk === 5)?._sum;
+
+    return {
+      pos1: Calculations.calculateTotalAverage(pos1, totalMatches),
+      pos2: Calculations.calculateTotalAverage(pos2, totalMatches),
+      pos3: Calculations.calculateTotalAverage(pos3, totalMatches),
+      pos4: Calculations.calculateTotalAverage(pos4, totalMatches),
+      pos5: Calculations.calculateTotalAverage(pos5, totalMatches),
     };
   }
 }

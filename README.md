@@ -2,9 +2,6 @@
 
 Pipeline to analyse dota 2 matches and process match, heroes, factions and position stats.
 
-##### todo:
-- optimize faction stats function
-
 #### Analytic's targets
 
 ##### Match-Level Stats
@@ -20,6 +17,7 @@ Pipeline to analyse dota 2 matches and process match, heroes, factions and posit
 - [x] Average KDA (kills, deaths, assists) per hero
 - [x] Average gold, XP, and creep score per hero
 - [x] Most popular position(s) a hero is played in
+- [x] Average KDA and CS/DN per position played
 
 ##### Faction-Level Stats
 - [x] Average kills/gold/CS per faction
@@ -27,9 +25,7 @@ Pipeline to analyse dota 2 matches and process match, heroes, factions and posit
 - [x] Stats split by gamemode (Turbo/All Pick/Competitive)
 
 ##### Role-Level Stats (if you model positions)
-- [ ] Pick frequency per position (pos1–pos5)
-- [ ] Average gold/CS per position
-- [ ] Position-specific hero preference (which heroes dominate which positions based on wins and KDA)
+- [x] Average gold/CS per position
 
 #### Database Schema
 ```SQL

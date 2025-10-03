@@ -29,21 +29,9 @@ interface MatchStats {
 
 export class Calculations {
   public static calculateHeroesMatchAggregates(
-    matches: (Matches & { match: { winnerId: number } })[]
+    matches: (Matches & { match: { winnerId: number } })[],
   ) {
     const totalMatches = matches.length;
-
-    let pos1 = 0,
-      pos2 = 0,
-      pos3 = 0,
-      pos4 = 0,
-      pos5 = 0;
-
-    let pos1Win = 0,
-      pos2Win = 0,
-      pos3Win = 0,
-      pos4Win = 0,
-      pos5Win = 0;
 
     let totalKills = 0,
       totalDeaths = 0,
@@ -52,6 +40,19 @@ export class Calculations {
       totalCS = 0,
       totalDS = 0,
       wins = 0;
+
+
+    let pos1 = { played: 0, wins: 0 };
+    let pos2 = { played: 0, wins: 0 };
+    let pos3 = { played: 0, wins: 0 };
+    let pos4 = { played: 0, wins: 0 };
+    let pos5 = { played: 0, wins: 0 };
+    
+    let pos1Stats = { kills: 0, deaths: 0, assists: 0, gold: 0, CS: 0, DS: 0 };
+    let pos2Stats = { kills: 0, deaths: 0, assists: 0, gold: 0, CS: 0, DS: 0 };
+    let pos3Stats = { kills: 0, deaths: 0, assists: 0, gold: 0, CS: 0, DS: 0 };
+    let pos4Stats = { kills: 0, deaths: 0, assists: 0, gold: 0, CS: 0, DS: 0 };
+    let pos5Stats = { kills: 0, deaths: 0, assists: 0, gold: 0, CS: 0, DS: 0 };
 
     for (const mh of matches) {
       // Total general stats
@@ -70,24 +71,54 @@ export class Calculations {
 
       switch (mh.positionFk) {
         case 1:
-          pos1++;
-          if (won) pos1Win++;
+          pos1.played++;
+          pos1Stats.kills += mh.kills;
+          pos1Stats.deaths += mh.deaths;
+          pos1Stats.assists += mh.assists;
+          pos1Stats.gold += mh.gold;
+          pos1Stats.CS += mh.creepScore;
+          pos1Stats.DS += mh.denyScore;
+          if (won) pos1.wins++;
           break;
         case 2:
-          pos2++;
-          if (won) pos2Win++;
+          pos2.played++;
+          pos2Stats.kills += mh.kills;
+          pos2Stats.deaths += mh.deaths;
+          pos2Stats.assists += mh.assists;
+          pos2Stats.gold += mh.gold;
+          pos2Stats.CS += mh.creepScore;
+          pos2Stats.DS += mh.denyScore;
+          if (won) pos2.wins++;
           break;
         case 3:
-          pos3++;
-          if (won) pos3Win++;
+          pos3.played++;
+          pos3Stats.kills += mh.kills;
+          pos3Stats.deaths += mh.deaths;
+          pos3Stats.assists += mh.assists;
+          pos3Stats.gold += mh.gold;
+          pos3Stats.CS += mh.creepScore;
+          pos3Stats.DS += mh.denyScore;
+          if (won) pos3.wins++;
           break;
         case 4:
-          pos4++;
-          if (won) pos4Win++;
+          pos4.played++;
+          pos4Stats.kills += mh.kills;
+          pos4Stats.deaths += mh.deaths;
+          pos4Stats.assists += mh.assists;
+          pos4Stats.gold += mh.gold;
+          pos4Stats.CS += mh.creepScore;
+          pos4Stats.DS += mh.denyScore;
+          if (won) pos4.wins++;
           break;
         case 5:
-          pos5++;
-          if (won) pos5Win++;
+          pos5.played++;
+          pos5Stats.kills += mh.kills;
+          pos5Stats.deaths += mh.deaths;
+          pos5Stats.assists += mh.assists;
+          pos5Stats.gold += mh.gold;
+          pos5Stats.CS += mh.creepScore;
+          pos5Stats.DS += mh.denyScore;
+          if (won) pos5.wins++;
           break;
       }
     }
@@ -129,38 +160,46 @@ export class Calculations {
     const positions = {
       pos1: {
         name: "Hard Carry",
-        picks: pos1,
-        pickRate: totalMatches ? Math.round((pos1 * 100) / totalMatches) : 0,
-        wins: pos1Win,
-        winRate: totalMatches ? Math.round((pos1Win * 100) / totalMatches) : 0,
+        picks: pos1.played,
+        pickRate: totalMatches ? Math.round((pos1.played * 100) / totalMatches) : 0,
+        wins: pos1.wins,
+        winRate: totalMatches ? Math.round((pos1.wins * 100) / totalMatches) : 0,
+        stats: pos1Stats,
       },
       pos2: {
         name: "Midlane",
-        picks: pos2,
-        pickRate: totalMatches ? Math.round((pos2 * 100) / totalMatches) : 0,
-        wins: pos2Win,
-        winRate: totalMatches ? Math.round((pos2Win * 100) / totalMatches) : 0,
+        picks: pos2.played,
+        pickRate: totalMatches ? Math.round((pos2.played * 100) / totalMatches) : 0,
+        wins: pos2.wins,
+        winRate: totalMatches ? Math.round((pos2.wins * 100) / totalMatches) : 0,
+        stats: pos2Stats,
       },
       pos3: {
         name: "Offlane",
-        picks: pos3,
-        pickRate: totalMatches ? Math.round((pos3 * 100) / totalMatches) : 0,
-        wins: pos3Win,
-        winRate: totalMatches ? Math.round((pos3Win * 100) / totalMatches) : 0,
+        picks: pos3.played,
+        pickRate: totalMatches ? Math.round((pos3.played * 100) / totalMatches) : 0,
+        wins: pos3.wins,
+        winRate: totalMatches ? Math.round((pos3.wins * 100) / totalMatches) : 0,
+                stats: pos3Stats,
+
       },
       pos4: {
         name: "Support",
-        picks: pos4,
-        pickRate: totalMatches ? Math.round((pos4 * 100) / totalMatches) : 0,
-        wins: pos4Win,
-        winRate: totalMatches ? Math.round((pos4Win * 100) / totalMatches) : 0,
+        picks: pos4.played,
+        pickRate: totalMatches ? Math.round((pos4.played * 100) / totalMatches) : 0,
+        wins: pos4.wins,
+        winRate: totalMatches ? Math.round((pos4.wins * 100) / totalMatches) : 0,
+                stats: pos4Stats,
+
       },
       pos5: {
         name: "Hard Support",
-        picks: pos5,
-        pickRate: totalMatches ? Math.round((pos5 * 100) / totalMatches) : 0,
-        wins: pos5Win,
-        winRate: totalMatches ? Math.round((pos5Win * 100) / totalMatches) : 0,
+        picks: pos5.played,
+        pickRate: totalMatches ? Math.round((pos5.played * 100) / totalMatches) : 0,
+        wins: pos5.wins,
+        winRate: totalMatches ? Math.round((pos5.wins * 100) / totalMatches) : 0,
+                stats: pos5Stats,
+
       },
     };
 
@@ -176,20 +215,20 @@ export class Calculations {
 
   public static calculateFactionStats(
     data: FactionData | undefined,
-    totalMatches: number
+    totalMatches: number,
   ) {
     const total = {
-      kills: data?.kills ?? 0,
-      gold: data?.gold ?? 0,
-      creepScore: data?.creepScore ?? 0,
-      denyScore: data?.denyScore ?? 0,
+      totalKills: data?.kills ?? 0,
+      totalGold: data?.gold ?? 0,
+      totalCreepScore: data?.creepScore ?? 0,
+      totalDenyScore: data?.denyScore ?? 0,
     };
 
     const averages = {
-      kills: Math.round((data?.kills ?? 0) / totalMatches),
-      gold: Math.round((data?.gold ?? 0) / totalMatches),
-      creepScore: Math.round((data?.creepScore ?? 0) / totalMatches),
-      denyScore: Math.round((data?.denyScore ?? 0) / totalMatches),
+      avgKills: Math.round((data?.kills ?? 0) / totalMatches),
+      avgGold: Math.round((data?.gold ?? 0) / totalMatches),
+      avgCreepScore: Math.round((data?.creepScore ?? 0) / totalMatches),
+      avgDenyScore: Math.round((data?.denyScore ?? 0) / totalMatches),
     };
 
     return { total, averages };
@@ -198,7 +237,7 @@ export class Calculations {
   public static calculateMatchStats(
     data: MatchStats,
     totalMatches: number,
-    duration: number
+    duration: number,
   ) {
     const total = {
       totalKills: data.kills ?? 0,
@@ -217,5 +256,33 @@ export class Calculations {
     };
 
     return { total, averages };
+  }
+
+  public static calculateTotalAverage(
+    data: MatchStats | undefined,
+    total: number,
+  ) {
+    return {
+      total: {
+        totalKills: data?.kills ?? 0,
+        totalDeaths: data?.deaths ?? 0,
+        totalAssists: data?.assists ?? 0,
+        totalGold: data?.gold ?? 0,
+        totalCreepScore: data?.creepScore ?? 0,
+        totalDenyScore: data?.denyScore ?? 0,
+      },
+      average: {
+        avgKda: (data?.deaths
+          ? ((data?.kills ?? 0) + (data?.assists ?? 0)) / data?.deaths
+          : (data?.kills ?? 0) + (data?.assists ?? 0)
+        ).toPrecision(2),
+        avgKills: Math.round((data?.kills ?? 0) / total),
+        avgDeaths: Math.round((data?.deaths ?? 0) / total),
+        avgAssists: Math.round((data?.assists ?? 0) / total),
+        avgGold: Math.round((data?.gold ?? 0) / total),
+        avgCreepScore: Math.round((data?.creepScore ?? 0) / total),
+        avgDenyScore: Math.round((data?.denyScore ?? 0) / total),
+      },
+    };
   }
 }
