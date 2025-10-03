@@ -8,23 +8,24 @@ Pipeline to analyse dota 2 matches and process match, heroes, factions and posit
 - [x] Total matches played
 - [x] Average match duration
 - [x] Average kills/assists/deaths per match
-- [x] Average match duration **per type** (Turbo, All Pick, Competitive)
+- [x] Stats split by gamemode (Turbo/All Pick/Competitive)
 - [x] Distribution of match types (percentages, not just counts)
 ##### Hero-Level Stats
 - [x] Pick rate per hero
 - [x] Win rate per hero (wins when picked vs losses when picked)
 - [x] Average KDA (kills, deaths, assists) per hero
 - [x] Average gold, XP, and creep score per hero
-- [ ] Most popular position(s) a hero is played in
+- [x] Most popular position(s) a hero is played in
 ##### Faction-Level Stats
-- [ ] Win rate split by game type (Turbo/All Pick/Competitive)
 - [x] Average kills/gold/CS per faction
 - [x] Win rate per faction (Radiant vs Dire)
+- [x] Stats split by gamemode (Turbo/All Pick/Competitive)
 ##### Player/Role-Level Stats (if you model positions)
 - [ ] Pick frequency per position (pos1–pos5)
-- [ ] Win rate per position
+- [x] Win rate per position
 - [ ] Average gold/CS per position
 - [ ] Position-specific hero preference (which heroes dominate which positions based on wins and KDA)
+
 #### Database Schema
 ```SQL
 -- Hero Table
