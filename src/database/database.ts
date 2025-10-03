@@ -4,8 +4,9 @@ import {Calculations} from "./helpers";
 const prisma = new PrismaClient();
 
 export class Database {
-  // -- /heroes
+  // -- /heroes?gamemode=:number
   // --- Get all heroes stats
+  // ---- gamemode (0 - All Pick; 1 - Ranked; 2 - Turbo)
   public static async getHeroesStats(gamemode: number | null = null) {
     const totalMatches = await prisma.match.count();
     const matchWhere = gamemode !== null ? { type: gamemode } : {};
@@ -39,11 +40,12 @@ export class Database {
     });
   }
 
-  // -- /heroes?id=number
+  // -- /heroes?id=number&&gamemode=:number
   // --- Get the stats of a single hero.
+  // ---- gamemode (0 - All Pick; 1 - Ranked; 2 - Turbo)
   public static async getHeroStats(id: number, gamemode: number | null = null) {
-    const matchWhere = gamemode !== null ? { type: gamemode } : {};
     const totalMatches = await prisma.match.count();
+    const matchWhere = gamemode !== null ? { type: gamemode } : {};
 
     // -- Get hero entry and matches associated with it.
     const hero = await prisma.hero.findUnique({
@@ -71,7 +73,7 @@ export class Database {
     return {
       heroId: hero.id,
       heroName: hero.name,
-      pickRate: (draftedAmount * 100) / totalMatches,
+      pickRate: Math.round((draftedAmount * 100) / totalMatches),
       ...Calculations.calculateHeroesMatchAggregates(hero.matches),
     };
   }
@@ -82,7 +84,8 @@ export class Database {
   public static async getMatchStats(gamemode: number | null = null) {
     const matchWhere = gamemode !== null ? { type: gamemode } : {};
 
-    const totalMatches = await prisma.match.count({
+    const totalMatches = await prisma.match.count();
+    const totalMatchesFound = await prisma.match.count({
         where: matchWhere
     });
     const duration = (
@@ -110,8 +113,9 @@ export class Database {
             ? "Ranked"
             : "Turbo",
       }),
-      matchCount: totalMatches ?? 0,
-      ...Calculations.calculateMatchStats(stats._sum, totalMatches, duration ?? 0),
+      matchCount: totalMatchesFound ?? 0,
+      distribution: Math.round((totalMatchesFound * 100) / totalMatches),
+      ...Calculations.calculateMatchStats(stats._sum, totalMatchesFound, duration ?? 0),
     };
   }
 
@@ -148,7 +152,7 @@ export class Database {
       },
       dire: {
         wins: wins.find((w) => w.winnerId === 1)?._count.winnerId ?? 0,
-        winRate: (direWins * 100) / matchAmount,
+        winRate: Math.round((direWins * 100) / matchAmount),
         ...Calculations.calculateFactionStats(direData, matchAmount),
       },
     };

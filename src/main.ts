@@ -28,7 +28,7 @@ app.get("/heroes", async (req, res) => {
     return res.sendStatus(400);
 
   if (id != null) {
-    const result = await Database.getHeroStats(id);
+    const result = await Database.getHeroStats(id, gamemode);
     return result == null ? res.sendStatus(404) : res.json(result);
   }
 
