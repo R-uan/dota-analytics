@@ -1,0 +1,119 @@
+{
+  "id": 1000,
+  "type": 2,
+  "duration": 3600,
+  "date": "2023-10-27T10:30:00.000Z",
+  "winnerId": 1,
+  "heroes": [
+    {
+      "heroId": 113,
+      "factionFk": 0,
+      "positionFk": 1,
+      "kills": 7,
+      "assists": 16,
+      "deaths": 13,
+      "gold": 24848,
+      "creepScore": 145,
+      "denyScore": 66
+    },
+    {
+      "heroId": 106,
+      "factionFk": 0,
+      "positionFk": 2,
+      "kills": 11,
+      "assists": 15,
+      "deaths": 2,
+      "gold": 39661,
+      "creepScore": 251,
+      "denyScore": 106
+    },
+    {
+      "heroId": 15,
+      "factionFk": 0,
+      "positionFk": 3,
+      "kills": 14,
+      "assists": 24,
+      "deaths": 12,
+      "gold": 17545,
+      "creepScore": 196,
+      "denyScore": 57
+    },
+    {
+      "heroId": 56,
+      "factionFk": 0,
+      "positionFk": 4,
+      "kills": 19,
+      "assists": 4,
+      "deaths": 10,
+      "gold": 11371,
+      "creepScore": 188,
+      "denyScore": 37
+    },
+    {
+      "heroId": 120,
+      "factionFk": 0,
+      "positionFk": 5,
+      "kills": 15,
+      "assists": 14,
+      "deaths": 11,
+      "gold": 36470,
+      "creepScore": 263,
+      "denyScore": 9
+    },
+    {
+      "heroId": 97,
+      "factionFk": 1,
+      "positionFk": 1,
+      "kills": 12,
+      "assists": 9,
+      "deaths": 15,
+      "gold": 18081,
+      "creepScore": 160,
+      "denyScore": 61
+    },
+    {
+      "heroId": 112,
+      "factionFk": 1,
+      "positionFk": 2,
+      "kills": 11,
+      "assists": 11,
+      "deaths": 3,
+      "gold": 32692,
+      "creepScore": 314,
+      "denyScore": 134
+    },
+    {
+      "heroId": 100,
+      "factionFk": 1,
+      "positionFk": 3,
+      "kills": 3,
+      "assists": 24,
+      "deaths": 1,
+      "gold": 38089,
+      "creepScore": 263,
+      "denyScore": 5
+    },
+    {
+      "heroId": 40,
+      "factionFk": 1,
+      "positionFk": 4,
+      "kills": 11,
+      "assists": 16,
+      "deaths": 8,
+      "gold": 42629,
+      "creepScore": 260,
+      "denyScore": 143
+    },
+    {
+      "heroId": 20,
+      "factionFk": 1,
+      "positionFk": 5,
+      "kills": 18,
+      "assists": 20,
+      "deaths": 8,
+      "gold": 27814,
+      "creepScore": 118,
+      "denyScore": 85
+    }
+  ]
+}

@@ -1,9 +1,57 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Match } from "@prisma/client";
 import { Calculations } from "./helpers";
+import type { IMatch, IMatchHero } from "../matchDTO";
 
 const prisma = new PrismaClient();
 
 export class Database {
+  public static async storeMatch(data: IMatch) {
+    try {
+      await prisma.$transaction([
+        prisma.match.create({
+          data: {
+            date: data.date,
+            duration: data.duration,
+            type: data.type,
+            id: data.id,
+            winnerId: data.winnerId,
+          },
+        }),
+
+        prisma.matchHero.createMany({
+          data: data.heroes.map((hero) => ({
+            matchId: data.id,
+            heroId: hero.heroId,
+            factionId: hero.factionFk,
+            positionFk: hero.positionFk,
+            kills: hero.kills,
+            assists: hero.assists,
+            deaths: hero.deaths,
+            gold: hero.gold,
+            creepScore: hero.creepScore,
+            denyScore: hero.denyScore,
+          })),
+        }),
+      ]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public static async getMatchById(id: number) {
+    return await prisma.match.findFirst({
+      where: { id: id },
+      include: {
+        heroes: {
+          omit: {
+            matchId: true,
+          },
+        },
+      },
+    });
+  }
+
   // -- /heroes?gamemode=:number
   // --- Get all heroes stats
   // ---- gamemode (0 - All Pick; 1 - Ranked; 2 - Turbo)
