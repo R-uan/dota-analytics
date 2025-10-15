@@ -1,6 +1,6 @@
-import { PrismaClient, type Match } from "@prisma/client";
-import { Calculations } from "./helpers";
-import type { IMatch, IMatchHero } from "../matchDTO";
+import { PrismaClient } from "@prisma/client";
+import { Calculations } from "../calculations";
+import type { IMatch } from "../interfaces";
 
 const prisma = new PrismaClient();
 

@@ -1,35 +1,8 @@
-interface Matches {
-  matchId: number;
-  heroId: number;
-  factionId: number;
-  positionFk: number;
-  kills: number;
-  assists: number;
-  deaths: number;
-  gold: number;
-  creepScore: number;
-  denyScore: number;
-}
-
-interface FactionData {
-  kills: number | null;
-  gold: number | null;
-  creepScore: number | null;
-  denyScore: number | null;
-}
-
-interface MatchStats {
-  kills: number | null;
-  deaths: number | null;
-  assists: number | null;
-  gold: number | null;
-  creepScore: number | null;
-  denyScore: number | null;
-}
+import type { IFactionData, IMatches, IMatchStats } from "./interfaces";
 
 export class Calculations {
   public static calculateHeroesMatchAggregates(
-    matches: (Matches & { match: { winnerId: number } })[],
+    matches: (IMatches & { match: { winnerId: number } })[],
   ) {
     const totalMatches = matches.length;
 
@@ -214,7 +187,7 @@ export class Calculations {
   }
 
   public static calculateFactionStats(
-    data: FactionData | undefined,
+    data: IFactionData | undefined,
     totalMatches: number,
   ) {
     const total = {
@@ -235,7 +208,7 @@ export class Calculations {
   }
 
   public static calculateMatchStats(
-    data: MatchStats,
+    data: IMatchStats,
     totalMatches: number,
     duration: number,
   ) {
@@ -259,7 +232,7 @@ export class Calculations {
   }
 
   public static calculateTotalAverage(
-    data: MatchStats | undefined,
+    data: IMatchStats | undefined,
     total: number,
   ) {
     return {

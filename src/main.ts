@@ -1,6 +1,7 @@
 import { Database } from "./database/database";
 import express, { type Request } from "express";
 import { z } from "zod";
+import { matchSchema } from "./validators";
 
 const app = express();
 app.use(express.json());
@@ -24,29 +25,7 @@ app.get("/matches/:id", async (req, res) => {
   return match === null ? res.status(404) : res.json(match);
 });
 
-const heroMatchSchema = z.object({
-  heroId: z.number().positive(),
-  factionFk: z.number().min(0).max(1),
-  positionFk: z.number().positive().max(5),
-  kills: z.number().positive(),
-  assists: z.number().positive(),
-  deaths: z.number().positive(),
-  gold: z.number().positive(),
-  creepScore: z.number().positive(),
-  denyScore: z.number().positive(),
-});
-
-const matchSchema = z.object({
-  id: z.number().positive(),
-  type: z.number().positive().min(1).max(3),
-  duration: z.number().positive(),
-  date: z.coerce.date(),
-  winnerId: z.number().positive().max(2),
-  heroes: z.array(heroMatchSchema).min(10),
-});
-
-type MatchBody = z.infer<typeof matchSchema>;
-
+//  -- /matches
 app.post("/matches", async (req, res) => {
   console.log(req.body);
   const parse = matchSchema.safeParse(req.body);
